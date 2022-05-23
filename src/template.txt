@@ -1,0 +1,1 @@
+"{\"name\": \"str:rand\",\"date\": \"timestamp:\",\"type\": \"str:['client', 'goat', 'booboo']\",\"age\": \"int:rand(1,100)\"}"

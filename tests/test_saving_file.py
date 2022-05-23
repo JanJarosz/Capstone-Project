@@ -9,11 +9,11 @@ data = json.loads("{\"name\": \"str:rand\",\"date\": \"timestamp:\",\"type\": \"
                   "\"age\": \"int:rand(1,100)\"}")
 
 
-attrs1 = ['/Users/jjarosz/PycharmProjects/Capstone/tests', ['files', 1], 'saving_test', False, 10, False, 1]
+attrs1 = ['/Users/jjarosz/PycharmProjects/cap_project/tests', ['files', 1], 'saving_test', False, 10, False, 1]
 
-attrs2 = ['/Users/jjarosz/PycharmProjects/Capstone/tests', ['files', 2], 'saving_test', 'count', 10, False, 1]
+attrs2 = ['/Users/jjarosz/PycharmProjects/cap_project/tests', ['files', 2], 'saving_test', 'count', 10, False, 1]
 
-attrs3 = ['/Users/jjarosz/PycharmProjects/Capstone/tests', ['files', 2], 'saving_test', 'uuid', 10, False, 1]
+attrs3 = ['/Users/jjarosz/PycharmProjects/cap_project/tests', ['files', 2], 'saving_test', 'uuid', 10, False, 1]
 
 
 def test_save_file():

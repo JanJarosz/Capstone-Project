@@ -85,15 +85,13 @@ def identify_schema_source(inputs):
 
 def process_schema(dic):
     """Check correctness of a given data schema"""
-    possible_keys = ['date', 'name', 'type', 'age']
     possible_types = ['timestamp', 'int', 'str', ]
     pattern_rand_1 = '^[0-9].*'
     pattern_rand_2 = '^[a-z].*'
     pattern_rand_3 = '\[.*\]'
     pattern_rand_4 = 'rand\([0-9]*, ?[0-9]*\)'
+    final_dict = {}
     for key in dic:
-        if key.lower() not in possible_keys:
-            sys.exit(f'forbidden key in JSON input -> {key}')
         if ':' in dic[key]:
             divider = dic[key].index(':')
             left = dic[key][:divider]
@@ -113,40 +111,30 @@ def process_schema(dic):
             sys.exit('forbidden format of input. Value must be like "type of data to generate:what to generate"')
 
         """Generating data line"""
-        if key.lower() == 'date':
-            if not dic[key].lower().startswith('timestamp'):
-                sys.exit('type of date must be a timestamp')
-            elif not dic[key].lower().endswith(':'):
+        if dic[key].lower().startswith('timestamp'):
+            if not dic[key].lower().endswith(':'):
                 pass
-            date = time.time()
+            final_dict[key] = time.time()
 
-        if key.lower() == 'name':
-            if not dic[key].lower().startswith('str:'):
-                sys.exit('Name must be a "str"')
+        elif dic[key].lower().startswith('str:'):
             if dic[key][4:].lower() == 'rand':
-                name = str(uuid.uuid4())
+                final_dict[key] = str(uuid.uuid4())
             elif re.match(pattern_rand_3, dic[key][4:]):
-                name = random.choice(ast.literal_eval(dic[key][4:]))
+                final_dict[key] = random.choice(ast.literal_eval(dic[key][4:]))
             else:
-                name = dic[key][4:]
+                final_dict[key] = dic[key][4:]
 
-        if key.lower() == 'type':
-            if not dic[key].lower().startswith('str:'):
-                sys.exit('Type must be a "str"')
+        elif dic[key].lower().startswith('int:'):
             if re.match(pattern_rand_3, dic[key][4:].lower()):
-                typ = random.choice(ast.literal_eval(dic[key][4:]))
-            else:
-                typ = dic[key][4:]
+                final_dict[key] = random.choice(ast.literal_eval(dic[key][4:]))
+                try:
+                    int(final_dict[key])
+                except ValueError:
+                    sys.exit(f'list to draw must contains only digits -> {final_dict[key]}')
 
-        if key.lower() == 'age':
-            if not dic[key].lower().startswith('int:'):
-                sys.exit('age must be an "int"')
-            if re.match(pattern_rand_3, dic[key][4:].lower()):
-                age = random.choice(ast.literal_eval(dic[key][4:]))
-                if not isinstance(int(age), int):
-                    sys.exit(f'every item in list to draw has to be an "int" -> {age}')
             elif dic[key][4:].lower() == 'rand':
-                age = random.randint(0, 10000)
+                final_dict[key] = random.randint(0, 10000)
+
             elif re.match(pattern_rand_4, dic[key][4:]):
                 comma = dic[key].index(',')
                 p1 = dic[key].index('(')
@@ -155,16 +143,17 @@ def process_schema(dic):
                 ceiling = dic[key][comma + 1:p2]
                 if not isinstance(int(floor), int) or not isinstance(int(ceiling), int):
                     sys.exit(f'given scope has to be an "int" -> {floor} or {ceiling}')
-                age = random.randint(int(floor), int(ceiling))
+                final_dict[key] = random.randint(int(floor), int(ceiling))
+
             else:
-                age = dic[key][4:]
+                final_dict[key] = dic[key][4:]
                 try:
-                    age = int(age)
+                    final_dict[key] = int(final_dict[key])
                 except ValueError:
                     pass
-                if not isinstance(age, int):
-                    sys.exit(f'given age has to be an "int" -> {age}')
-    return {"date": date, "name": name, "type": typ, "age": age}
+                if not isinstance(final_dict[key], int):
+                    sys.exit(f'given age has to be an "int" -> {final_dict[key]}')
+    return final_dict
 
 
 def process_attributes(attrs_dict):
@@ -266,8 +255,10 @@ if __name__ == '__main__':
     schema = identify_schema_source(args.data_schema)
     logging.info('schema source identified')
 
-    if not schema['date'].lower().endswith(':'):
-        logging.warning('timestamp does not support any values. Date will be sat as current time.')
+    for item in schema:
+        if schema[item].lower().startswith('timestamp'):
+            if not schema[item].lower().endswith(':'):
+                logging.warning(f'timestamp does not support any values. {item} will be set as current time.')
 
     logging.debug('processing given attributes...')
     proc_at = process_attributes(vars(args))

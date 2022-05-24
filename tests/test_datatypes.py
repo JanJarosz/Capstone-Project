@@ -4,14 +4,17 @@ import json
 
 
 dtypes = [
-    (json.loads("{\"name\": \"int:rand\",\"date\": \"timestamp:\",\"type\": \"str:['client', 'goat', 'booboo']\","
-     "\"age\": \"int:rand(1,100)\"}"), 'Name must be a "str"'),
-    (json.loads("{\"name\": \"str:rand\",\"date\": \"timestamp:\",\"type\": \"int:['client', 'goat', 'booboo']\","
-     "\"age\": \"int:rand(1,100)\"}"), 'Type must be a "str"'),
+    (json.loads("{\"name\": \"float:rand\",\"date\": \"timestamp:\",\"type\": \"str:['client', 'goat', 'booboo']\","
+     "\"age\": \"int:rand(1,100)\"}"), 'forbidden type of data to generate -> float'),
+
+    (json.loads("{\"name\": \"str:rand\",\"date\": \"timestamp:\",\"type\": \"int:['client', 'client']\","
+     "\"age\": \"int:rand(1,100)\"}"), 'list to draw must contains only digits -> client'),
+
     (json.loads("{\"name\": \"str:rand\",\"date\": \"time:\",\"type\": \"int:['client', 'goat', 'booboo']\","
      "\"age\": \"int:rand(1,100)\"}"), 'forbidden type of data to generate -> time'),
+
     (json.loads("{\"name\": \"str:rand\",\"date\": \"timestamp:\",\"type\": \"str:['client', 'goat', 'booboo']\","
-     "\"age\": \"str:rand(1,100)\"}"), 'age must be an "int"')
+     "\"age\": \"int:rand(dog,100)\"}"), 'given age has to be an "int" -> rand(dog,100)')
 ]
 
 

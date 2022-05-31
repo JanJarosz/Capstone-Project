@@ -245,7 +245,7 @@ def generate_dataset_parallel(attributes, data, tasks):
                     f.write(f'{line}\n')
 
 
-if __name__ == '__main__':
+def main():
     config_logs()
     logging.debug('configuring argparser and uploading default options...')
     args = config_parser()
@@ -298,3 +298,8 @@ if __name__ == '__main__':
         logging.info('data generated')
         stop = time.time()
         print(stop-start)
+
+
+if __name__ == '__main__':
+    main()
+

@@ -85,7 +85,7 @@ def identify_schema_source(inputs):
 
 def process_schema(dic):
     """Check correctness of a given data schema"""
-    possible_types = ['timestamp', 'int', 'str', ]
+    possible_types = {'timestamp', 'int', 'str'}
     pattern_rand_1 = '^[0-9].*'
     pattern_rand_2 = '^[a-z].*'
     pattern_rand_3 = '\[.*\]'
@@ -111,31 +111,33 @@ def process_schema(dic):
             sys.exit('forbidden format of input. Value must be like "type of data to generate:what to generate"')
 
         """Generating data line"""
+        slicer = dic[key][4:]
+
         if dic[key].lower().startswith('timestamp'):
             if not dic[key].lower().endswith(':'):
                 pass
             final_dict[key] = time.time()
 
         elif dic[key].lower().startswith('str:'):
-            if dic[key][4:].lower() == 'rand':
+            if slicer.lower() == 'rand':
                 final_dict[key] = str(uuid.uuid4())
-            elif re.match(pattern_rand_3, dic[key][4:]):
-                final_dict[key] = random.choice(ast.literal_eval(dic[key][4:]))
+            elif re.match(pattern_rand_3, slicer):
+                final_dict[key] = random.choice(ast.literal_eval(slicer))
             else:
-                final_dict[key] = dic[key][4:]
+                final_dict[key] = slicer
 
         elif dic[key].lower().startswith('int:'):
-            if re.match(pattern_rand_3, dic[key][4:].lower()):
-                final_dict[key] = random.choice(ast.literal_eval(dic[key][4:]))
+            if re.match(pattern_rand_3, slicer.lower()):
+                final_dict[key] = random.choice(ast.literal_eval(slicer))
                 try:
                     int(final_dict[key])
                 except ValueError:
                     sys.exit(f'list to draw must contains only digits -> {final_dict[key]}')
 
-            elif dic[key][4:].lower() == 'rand':
+            elif slicer.lower() == 'rand':
                 final_dict[key] = random.randint(0, 10000)
 
-            elif re.match(pattern_rand_4, dic[key][4:]):
+            elif re.match(pattern_rand_4, slicer):
                 comma = dic[key].index(',')
                 p1 = dic[key].index('(')
                 p2 = dic[key].index(')')
@@ -146,7 +148,7 @@ def process_schema(dic):
                 final_dict[key] = random.randint(int(floor), int(ceiling))
 
             else:
-                final_dict[key] = dic[key][4:]
+                final_dict[key] = slicer
                 try:
                     final_dict[key] = int(final_dict[key])
                 except ValueError:
@@ -191,7 +193,7 @@ def clearing_path(path, flag, filename):
     if flag:
         for file in os.listdir(path):
             if file.startswith(filename):
-                os.remove(path + '/' + file)
+                os.remove(os.path.join(path, file))
     else:
         logging.warning('cleaning flag is off. Path will not be cleaned')
         return False
@@ -232,7 +234,7 @@ def generate_dataset_parallel(attributes, data, tasks):
         try:
             name = tasks.get_nowait()
         except queue.Empty:
-            print('empty queue')
+            logging.info('Empty queue')
             break
 
         if not attributes[3]:
@@ -274,7 +276,7 @@ def main():
         generate_dataset_basic(proc_at, schema)
         logging.info('data generated')
         stop = time.time()
-        print(stop-start)
+        logging.info(f'{stop-start} sec')
     else:
         start = time.time()
         if proc_at[1][0] == 'console':
@@ -292,12 +294,15 @@ def main():
             sys.exit(f'forbidden prefix for files -> {proc_at[3]}')
         process_pool = [Process(target=generate_dataset_parallel,
                                 args=(proc_at, schema, work_to_do)) for _ in range(proc_at[6])]
-        [p.start() for p in process_pool]
-        [p.join() for p in process_pool]
-        [p.close() for p in process_pool]
+        for p in process_pool:
+            p.start()
+        for p in process_pool:
+            p.join()
+        for p in process_pool:
+            p.close()
         logging.info('data generated')
         stop = time.time()
-        print(stop-start)
+        logging.info(f'{stop-start} sec')
 
 
 if __name__ == '__main__':
